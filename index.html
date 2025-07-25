@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <title>Address Manager</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192x192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Using Inter font from Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom styles for transitions and active states */
+        .page {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .page.hidden {
+            opacity: 0;
+            transform: scale(0.98);
+            pointer-events: none;
+            position: absolute;
+        }
+        .nav-item.active svg, .nav-item.active span {
+            color: #4f46e5; /* indigo-600 */
+        }
+        .history-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .history-content.open {
+            max-height: 1000px; /* Adjust as needed */
+        }
+        .chevron-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+        .chevron-icon.rotated {
+            transform: rotate(180deg);
+        }
+        /* Style for the overlay pages */
+        .overlay-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #f8fafc; /* slate-50 */
+            z-index: 50;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            overflow-y: auto;
+        }
+        .overlay-page.visible {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <!-- Main Content -->
+    <main id="main-content" class="pb-24">
+        <!-- Home Page -->
+        <div id="home-page" class="page p-4 md:p-6">
+            <header class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">Dashboard</h1>
+                    <p class="text-slate-500">Welcome back!</p>
+                </div>
+                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=John" alt="User Avatar" class="w-14 h-14 rounded-full ring-2 ring-white shadow-md">
+            </header>
+
+            <!-- Parcels to Allocate -->
+            <section id="allocate-section" class="mb-6 cursor-pointer bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-indigo-100 text-indigo-600 p-3 rounded-full">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <div>
+                            <h2 class="font-semibold text-lg text-slate-800">Parcels to Allocate</h2>
+                            <p id="allocation-count" class="text-slate-500">3 parcels waiting for an address</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                </div>
+            </section>
+
+            <!-- On the Way -->
+            <section class="mb-6">
+                <h2 class="text-xl font-bold text-slate-900 mb-4">On The Way (2)</h2>
+                <div class="space-y-4">
+                    <!-- Parcel 1 -->
+                    <div class="parcel-item bg-white p-4 rounded-xl shadow-sm flex items-center space-x-4 cursor-pointer hover:bg-slate-50 transition-colors duration-200" data-parcel-id="1">
+                        <div class="bg-cyan-100 text-cyan-600 p-3 rounded-full">
+                            <i data-lucide="truck" class="w-6 h-6"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-slate-800">Electronics</p>
+                            <p class="text-sm text-slate-500">To: Home</p>
+                        </div>
+                        <div class="text-right">
+                             <p class="text-sm font-medium text-slate-600">Arriving Tomorrow</p>
+                             <p class="text-xs text-slate-400">#A84B2</p>
+                        </div>
+                    </div>
+                    <!-- Parcel 2 -->
+                    <div class="parcel-item bg-white p-4 rounded-xl shadow-sm flex items-center space-x-4 cursor-pointer hover:bg-slate-50 transition-colors duration-200" data-parcel-id="2">
+                        <div class="bg-amber-100 text-amber-600 p-3 rounded-full">
+                            <i data-lucide="gift" class="w-6 h-6"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-slate-800">Birthday Gift</p>
+                            <p class="text-sm text-slate-500">To: Office</p>
+                        </div>
+                        <div class="text-right">
+                             <p class="text-sm font-medium text-slate-600">Arriving in 3 days</p>
+                             <p class="text-xs text-slate-400">#C19D5</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History -->
+            <section>
+                <div id="history-toggle" class="flex justify-between items-center cursor-pointer p-2 -m-2 rounded-lg">
+                    <h2 class="text-xl font-bold text-slate-900">History</h2>
+                    <i data-lucide="chevron-down" class="w-6 h-6 text-slate-500 chevron-icon"></i>
+                </div>
+                <div id="history-content" class="history-content mt-4 space-y-3">
+                     <div class="bg-white p-4 rounded-xl shadow-sm flex items-center space-x-4 opacity-70">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full">
+                            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-slate-700">Book Collection</p>
+                            <p class="text-sm text-slate-500">Delivered to: Parents' House</p>
+                        </div>
+                        <p class="text-sm text-slate-400">Jul 15, 2025</p>
+                    </div>
+                     <div class="bg-white p-4 rounded-xl shadow-sm flex items-center space-x-4 opacity-70">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full">
+                            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold text-slate-700">Kitchenware</p>
+                            <p class="text-sm text-slate-500">Delivered to: Home</p>
+                        </div>
+                        <p class="text-sm text-slate-400">Jul 11, 2025</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings-page" class="page p-4 md:p-6 hidden">
+            <header class="mb-6">
+                <h1 class="text-3xl font-bold text-slate-900">Settings</h1>
+            </header>
+
+            <!-- General Settings -->
+            <section class="mb-8">
+                <h2 class="text-lg font-bold text-slate-500 uppercase tracking-wider mb-4">General</h2>
+                <div class="bg-white rounded-xl shadow-sm p-2">
+                    <div class="flex justify-between items-center p-3">
+                        <span class="font-medium">Email Notifications</span>
+                        <div class="relative inline-block w-12 h-6 rounded-full cursor-pointer bg-slate-200 transition-colors duration-300">
+                            <input type="checkbox" class="absolute w-full h-full opacity-0 cursor-pointer peer" checked>
+                            <span class="absolute top-1/2 left-1 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-300 peer-checked:translate-x-6 peer-checked:bg-indigo-600"></span>
+                        </div>
+                    </div>
+                    <hr class="border-slate-100">
+                    <div class="flex justify-between items-center p-3">
+                        <span class="font-medium">Dark Mode</span>
+                        <div class="relative inline-block w-12 h-6 rounded-full cursor-pointer bg-slate-200 transition-colors duration-300">
+                            <input type="checkbox" class="absolute w-full h-full opacity-0 cursor-pointer peer">
+                            <span class="absolute top-1/2 left-1 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-300 peer-checked:translate-x-6 peer-checked:bg-indigo-600"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Address Management -->
+            <section id="address-management">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-slate-500 uppercase tracking-wider">Addresses</h2>
+                    <button id="add-address-btn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center space-x-2 hover:bg-indigo-700 transition-colors duration-200">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                        <span>Add New</span>
+                    </button>
+                </div>
+                <div id="address-list" class="space-y-3">
+                    <!-- Address 1 -->
+                    <div class="address-entry bg-white p-4 rounded-xl shadow-sm" data-address-id="1">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-lg text-indigo-600">Home</p>
+                                <p class="text-slate-600">123 Main St, Anytown, USA 12345</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="edit-address-btn p-2 text-slate-500 hover:text-indigo-600"><i data-lucide="file-pen-line" class="w-5 h-5"></i></button>
+                                <button class="delete-address-btn p-2 text-slate-500 hover:text-red-600"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Address 2 -->
+                    <div class="address-entry bg-white p-4 rounded-xl shadow-sm" data-address-id="2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-lg text-indigo-600">Office</p>
+                                <p class="text-slate-600">456 Business Ave, Workville, USA 54321</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="edit-address-btn p-2 text-slate-500 hover:text-indigo-600"><i data-lucide="file-pen-line" class="w-5 h-5"></i></button>
+                                <button class="delete-address-btn p-2 text-slate-500 hover:text-red-600"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-slate-200 flex justify-around h-20">
+        <button id="nav-home" class="nav-item flex flex-col items-center justify-center w-full text-slate-500 active">
+            <i data-lucide="home" class="w-7 h-7 mb-1"></i>
+            <span class="text-xs font-medium">Home</span>
+        </button>
+        <button id="nav-settings" class="nav-item flex flex-col items-center justify-center w-full text-slate-500">
+            <i data-lucide="settings-2" class="w-7 h-7 mb-1"></i>
+            <span class="text-xs font-medium">Settings</span>
+        </button>
+    </nav>
+    
+    <!-- Overlay Pages Container -->
+    <div id="overlay-container">
+        <!-- Parcel Detail Page -->
+        <div id="detail-page" class="overlay-page p-4 md:p-6">
+            <header class="flex items-center mb-8">
+                <button class="back-btn p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <h1 class="text-2xl font-bold text-slate-900">Parcel Details</h1>
+            </header>
+            <div id="detail-content" class="space-y-6">
+                <!-- Content will be populated by JS -->
+            </div>
+        </div>
+
+        <!-- Address Allocation Page -->
+        <div id="allocation-page" class="overlay-page p-4 md:p-6">
+            <header class="flex items-center mb-8">
+                <button class="back-btn p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <h1 class="text-2xl font-bold text-slate-900">Allocate Parcels</h1>
+            </header>
+            <div class="space-y-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm">
+                    <button id="send-all-btn" class="w-full text-indigo-600 font-semibold py-2 flex items-center justify-center space-x-2 hover:bg-indigo-50 rounded-lg">
+                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                        <span>Send all to one location</span>
+                    </button>
+                </div>
+
+                <div id="unallocated-parcel-list" class="space-y-4">
+                    <!-- Unallocated parcels will be dynamically inserted here -->
+                </div>
+                
+                <div class="pt-2">
+                    <button id="confirm-allocation-btn" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 disabled:bg-indigo-300 disabled:cursor-not-allowed">
+                        Confirm Allocation
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add/Edit Address Page -->
+        <div id="address-form-page" class="overlay-page p-4 md:p-6">
+            <header class="flex items-center mb-8">
+                <button class="back-btn p-2 -ml-2 mr-2 rounded-full hover:bg-slate-200">
+                    <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                </button>
+                <h1 id="address-form-title" class="text-2xl font-bold text-slate-900">Add New Address</h1>
+            </header>
+            <form id="address-form" class="space-y-4">
+                <input type="hidden" id="address-id">
+                <div>
+                    <label for="alias" class="block text-sm font-medium text-slate-700 mb-1">Alias</label>
+                    <input type="text" id="alias" name="alias" placeholder="e.g., Home, Office" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div>
+                    <label for="address-line" class="block text-sm font-medium text-slate-700 mb-1">Address</label>
+                    <input type="text" id="address-line" name="address-line" placeholder="123 Main St, Anytown, USA 12345" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors duration-200">Save Address</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Custom Modal for Confirmation & Address Selection -->
+    <div id="modal-container" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100] hidden">
+        <!-- Delete Confirmation -->
+        <div id="confirm-modal" class="modal-content bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm text-center hidden">
+            <h3 id="modal-title" class="text-lg font-bold text-slate-900 mb-2">Are you sure?</h3>
+            <p id="modal-message" class="text-slate-600 mb-6">This action cannot be undone.</p>
+            <div class="flex justify-center space-x-4">
+                <button class="modal-cancel-btn px-6 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold hover:bg-slate-300 transition-colors">Cancel</button>
+                <button id="modal-confirm-btn" class="px-6 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors">Delete</button>
+            </div>
+        </div>
+        <!-- Address Selection -->
+        <div id="address-select-modal" class="modal-content bg-white rounded-xl shadow-2xl p-2 w-full max-w-sm hidden">
+            <h3 class="text-lg font-bold text-slate-900 p-4">Select an Address</h3>
+            <div id="modal-address-list" class="space-y-1 max-h-60 overflow-y-auto">
+                <!-- Address options will be populated here -->
+            </div>
+             <div class="p-2">
+                <button class="modal-cancel-btn w-full mt-2 px-6 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold hover:bg-slate-300 transition-colors">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            const pages = { home: document.getElementById('home-page'), settings: document.getElementById('settings-page') };
+            const overlayPages = { detail: document.getElementById('detail-page'), allocation: document.getElementById('allocation-page'), addressForm: document.getElementById('address-form-page') };
+            const navItems = { home: document.getElementById('nav-home'), settings: document.getElementById('nav-settings') };
+            
+            const modalContainer = document.getElementById('modal-container');
+            const confirmModal = document.getElementById('confirm-modal');
+            const addressSelectModal = document.getElementById('address-select-modal');
+            let confirmCallback = null;
+            let addressSelectCallback = null;
+
+            // --- Mock Data ---
+            let unallocatedParcels = [
+                { id: 'p1', name: 'Document Folder', icon: 'file-text' },
+                { id: 'p2', name: 'Small Gadget', icon: 'cpu' },
+                { id: 'p3', name: 'Book', icon: 'book-open' },
+            ];
+            const mockParcelDetails = {
+                "1": { sender: "Tech Emporium", logistics: "Express Shipping Co.", eta: "Tomorrow, by 8 PM", trackingHistory: [ { status: "Out for delivery", location: "Anytown, USA", time: "Jul 24, 8:05 AM" }, { status: "Arrived at local facility", location: "Anytown, USA", time: "Jul 24, 2:15 AM" }, { status: "In transit", location: "Midway Hub", time: "Jul 23, 6:30 PM" }, { status: "Shipped", location: "Origin Warehouse", time: "Jul 22, 9:00 AM" }, ] },
+                "2": { sender: "Gifts & More", logistics: "Standard Post", eta: "In 3 days", trackingHistory: [ { status: "In transit to local facility", location: "Regional Hub", time: "Jul 24, 11:20 AM" }, { status: "Shipped", location: "Gifts & More Warehouse", time: "Jul 23, 4:12 PM" }, ] }
+            };
+
+            // --- Navigation ---
+            function switchPage(pageName) {
+                Object.values(pages).forEach(p => p.classList.add('hidden'));
+                Object.values(navItems).forEach(n => n.classList.remove('active', 'text-indigo-600'));
+                pages[pageName].classList.remove('hidden');
+                navItems[pageName].classList.add('active', 'text-indigo-600');
+            }
+            navItems.home.addEventListener('click', () => switchPage('home'));
+            navItems.settings.addEventListener('click', () => switchPage('settings'));
+            
+            // --- Overlay Page Logic ---
+            function showOverlay(pageName) {
+                overlayPages[pageName].classList.add('visible');
+                document.body.style.overflow = 'hidden';
+            }
+            function hideAllOverlays() {
+                Object.values(overlayPages).forEach(p => p.classList.remove('visible'));
+                document.body.style.overflow = '';
+            }
+            document.querySelectorAll('.back-btn').forEach(btn => btn.addEventListener('click', hideAllOverlays));
+
+            // --- Home Page Logic ---
+            const historyToggle = document.getElementById('history-toggle');
+            historyToggle.addEventListener('click', () => {
+                document.getElementById('history-content').classList.toggle('open');
+                historyToggle.querySelector('.chevron-icon').classList.toggle('rotated');
+            });
+
+            document.getElementById('allocate-section').addEventListener('click', () => {
+                renderUnallocatedParcels();
+                showOverlay('allocation');
+            });
+            
+            document.querySelectorAll('.parcel-item').forEach(item => {
+                item.addEventListener('click', (e) => populateAndShowDetail(e.currentTarget.dataset.parcelId));
+            });
+
+            function populateAndShowDetail(parcelId) {
+                const details = mockParcelDetails[parcelId];
+                const contentEl = document.getElementById('detail-content');
+                contentEl.innerHTML = `
+                    <div class="bg-white p-5 rounded-xl shadow-sm"><h3 class="font-bold text-slate-500 uppercase tracking-wider text-sm mb-2">Sender</h3><p class="text-lg font-semibold text-slate-800">${details.sender}</p></div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm"><h3 class="font-bold text-slate-500 uppercase tracking-wider text-sm mb-2">Logistics</h3><p class="text-lg font-semibold text-slate-800">${details.logistics}</p></div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm"><h3 class="font-bold text-slate-500 uppercase tracking-wider text-sm mb-2">Estimated Arrival</h3><p class="text-lg font-semibold text-indigo-600">${details.eta}</p></div>
+                    <div><h3 class="text-xl font-bold text-slate-900 mb-3 mt-8">Tracking History</h3><div class="space-y-4 border-l-2 border-slate-200 ml-2">${details.trackingHistory.map((item, index) => `<div class="relative pl-8"><div class="absolute -left-[11px] top-1 w-5 h-5 rounded-full ${index === 0 ? 'bg-indigo-600 ring-4 ring-indigo-100' : 'bg-slate-300'}"></div><p class="font-semibold text-slate-700">${item.status}</p><p class="text-sm text-slate-500">${item.location}</p><p class="text-xs text-slate-400">${item.time}</p></div>`).join('')}</div></div>`;
+                showOverlay('detail');
+            }
+
+            // --- Allocation Page Logic ---
+            const unallocatedParcelList = document.getElementById('unallocated-parcel-list');
+            const confirmAllocationBtn = document.getElementById('confirm-allocation-btn');
+
+            function renderUnallocatedParcels() {
+                unallocatedParcelList.innerHTML = unallocatedParcels.map(p => `
+                    <div class="unallocated-item bg-white p-4 rounded-xl shadow-sm" data-parcel-id="${p.id}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="bg-slate-100 text-slate-500 p-3 rounded-full"><i data-lucide="${p.icon}" class="w-6 h-6"></i></div>
+                                <div><p class="font-semibold text-slate-800">${p.name}</p></div>
+                            </div>
+                            <button class="select-address-btn text-indigo-600 font-semibold px-3 py-1 rounded-lg hover:bg-indigo-50">Select Address</button>
+                        </div>
+                        <div class="address-display text-sm text-slate-500 mt-2 pl-16 hidden"></div>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+                checkAllocationReady();
+            }
+
+            unallocatedParcelList.addEventListener('click', e => {
+                if (e.target.classList.contains('select-address-btn')) {
+                    const item = e.target.closest('.unallocated-item');
+                    showAddressSelector(addressData => {
+                        updateParcelAddress(item, addressData);
+                        checkAllocationReady();
+                    });
+                }
+            });
+            
+            document.getElementById('send-all-btn').addEventListener('click', () => {
+                showAddressSelector(addressData => {
+                    document.querySelectorAll('.unallocated-item').forEach(item => updateParcelAddress(item, addressData));
+                    checkAllocationReady();
+                });
+            });
+
+            function updateParcelAddress(itemElement, addressData) {
+                const display = itemElement.querySelector('.address-display');
+                const button = itemElement.querySelector('.select-address-btn');
+                itemElement.dataset.addressId = addressData.id;
+                display.innerHTML = `<strong>To: ${addressData.alias}</strong> - ${addressData.full}`;
+                display.classList.remove('hidden');
+                button.textContent = 'Change';
+            }
+
+            function checkAllocationReady() {
+                const allAllocated = document.querySelectorAll('.unallocated-item').length === document.querySelectorAll('.unallocated-item[data-address-id]').length;
+                confirmAllocationBtn.disabled = !allAllocated;
+            }
+            
+            confirmAllocationBtn.addEventListener('click', () => {
+                showConfirmModal('Confirm Allocation?', `${unallocatedParcels.length} parcels will be processed.`, () => {
+                    unallocatedParcels = [];
+                    document.getElementById('allocation-count').textContent = '0 parcels waiting for an address';
+                    hideAllOverlays();
+                    // Add a success toast/message here in a real app
+                });
+            });
+
+
+            // --- Settings Page & Address Management ---
+            const addressList = document.getElementById('address-list');
+            const addressForm = document.getElementById('address-form');
+
+            document.getElementById('add-address-btn').addEventListener('click', () => {
+                addressForm.reset();
+                addressForm.querySelector('#address-id').value = '';
+                document.getElementById('address-form-title').textContent = 'Add New Address';
+                showOverlay('addressForm');
+            });
+
+            addressList.addEventListener('click', (e) => {
+                const editBtn = e.target.closest('.edit-address-btn');
+                const deleteBtn = e.target.closest('.delete-address-btn');
+                if (editBtn) {
+                    const entry = editBtn.closest('.address-entry');
+                    document.getElementById('address-form-title').textContent = 'Edit Address';
+                    addressForm.querySelector('#alias').value = entry.querySelector('p:first-child').textContent;
+                    addressForm.querySelector('#address-line').value = entry.querySelector('p:nth-child(2)').textContent;
+                    showOverlay('addressForm');
+                }
+                if (deleteBtn) {
+                    const entry = deleteBtn.closest('.delete-address-btn');
+                    showConfirmModal('Delete Address?', 'This action cannot be undone.', () => {
+                         entry.style.transition = 'opacity 0.3s, transform 0.3s';
+                         entry.style.opacity = '0';
+                         entry.style.transform = 'translateX(-20px)';
+                         setTimeout(() => entry.remove(), 300);
+                    });
+                }
+            });
+
+            addressForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const alias = addressForm.querySelector('#alias').value;
+                const addressLine = addressForm.querySelector('#address-line').value;
+                const newId = `addr_${Date.now()}`;
+                const newAddressHTML = `<div class="address-entry bg-white p-4 rounded-xl shadow-sm" data-address-id="${newId}"><div class="flex justify-between items-start"><div><p class="font-bold text-lg text-indigo-600">${alias}</p><p class="text-slate-600">${addressLine}</p></div><div class="flex space-x-2"><button class="edit-address-btn p-2 text-slate-500 hover:text-indigo-600"><i data-lucide="file-pen-line" class="w-5 h-5"></i></button><button class="delete-address-btn p-2 text-slate-500 hover:text-red-600"><i data-lucide="trash-2" class="w-5 h-5"></i></button></div></div></div>`;
+                addressList.insertAdjacentHTML('beforeend', newAddressHTML);
+                lucide.createIcons();
+                hideAllOverlays();
+            });
+            
+            // --- Modal Logic ---
+            function showModal(modalElement) {
+                modalContainer.classList.remove('hidden');
+                modalContainer.querySelectorAll('.modal-content').forEach(m => m.classList.add('hidden'));
+                modalElement.classList.remove('hidden');
+            }
+            function hideModals() {
+                modalContainer.classList.add('hidden');
+            }
+            modalContainer.addEventListener('click', e => {
+                if (e.target === modalContainer || e.target.closest('.modal-cancel-btn')) {
+                    hideModals();
+                }
+            });
+
+            function showConfirmModal(title, message, onConfirm) {
+                confirmModal.querySelector('#modal-title').textContent = title;
+                confirmModal.querySelector('#modal-message').textContent = message;
+                confirmCallback = onConfirm;
+                showModal(confirmModal);
+            }
+            
+            confirmModal.querySelector('#modal-confirm-btn').addEventListener('click', () => {
+                if (confirmCallback) confirmCallback();
+                hideModals();
+            });
+
+            function showAddressSelector(onSelect) {
+                const listEl = document.getElementById('modal-address-list');
+                const addresses = Array.from(document.querySelectorAll('#address-list .address-entry'));
+                if (addresses.length === 0) {
+                    listEl.innerHTML = `<p class="p-4 text-center text-slate-500">No addresses found. Please add one in Settings.</p>`;
+                } else {
+                    listEl.innerHTML = addresses.map(addr => {
+                        const alias = addr.querySelector('p:first-child').textContent;
+                        const full = addr.querySelector('p:nth-child(2)').textContent;
+                        const id = addr.dataset.addressId;
+                        return `<div class="p-4 hover:bg-slate-100 rounded-lg cursor-pointer modal-address-option" data-id="${id}" data-alias="${alias}" data-full="${full}">
+                                    <p class="font-semibold text-slate-800">${alias}</p>
+                                    <p class="text-sm text-slate-500">${full}</p>
+                                </div>`;
+                    }).join('');
+                }
+                addressSelectCallback = onSelect;
+                showModal(addressSelectModal);
+            }
+
+            addressSelectModal.addEventListener('click', e => {
+                const option = e.target.closest('.modal-address-option');
+                if (option && addressSelectCallback) {
+                    addressSelectCallback({
+                        id: option.dataset.id,
+                        alias: option.dataset.alias,
+                        full: option.dataset.full
+                    });
+                    hideModals();
+                }
+            });
+
+            // --- Initialize App ---
+            switchPage('home');
+            
+            // --- PWA Service Worker Registration ---
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW registered'), err => console.log('SW reg failed', err));
+                });
+            }
+        });
+    </script>
+    <script>
+        const manifestContent = {"name": "Address Manager PWA","short_name": "AddressMgr","start_url": ".","display": "standalone","background_color": "#f8fafc","theme_color": "#4f46e5","description": "A simple app to manage your delivery addresses.","icons": [{"src": "images/icon-192x192.png","sizes": "192x192","type": "image/png"},{"src": "images/icon-512x512.png","sizes": "512x512","type": "image/png"}]};
+        const manifestBlob = new Blob([JSON.stringify(manifestContent)], {type: 'application/json'});
+        document.querySelector('link[rel="manifest"]').href = URL.createObjectURL(manifestBlob);
+        const swContent = `const CACHE_NAME = 'address-manager-cache-v1'; const urlsToCache = ['/', '/index.html', 'https://cdn.tailwindcss.com', 'https://unpkg.com/lucide@latest', 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap']; self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))); }); self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))); });`;
+        const swBlob = new Blob([swContent], {type: 'application/javascript'});
+        // In a real environment, the service worker would be at /sw.js. This is a simulation.
+    </script>
+</body>
+</html>
